@@ -1,0 +1,12 @@
+{
+    "clients": [
+      {
+        "name": "Client A",
+        "url": "https://clientA.my.site.com"
+      },
+      {
+        "name": "Client B",
+        "url": "https://clientB.my.site.com"
+      }
+    ]
+  }

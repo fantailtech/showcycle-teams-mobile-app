@@ -1,0 +1,38 @@
+{
+    "$schema": "https://developer.microsoft.com/json-schemas/teams/v1.16/MicrosoftTeams.schema.json",
+    "manifestVersion": "1.16",
+    "version": "1.0.0",
+    "id": "YOUR-APP-ID",
+    "packageName": "com.yourcompany.clientportal",
+    "name": {
+      "short": "Client Portal",
+      "full": "Client Portal App"
+    },
+    "description": {
+      "short": "Open client-specific site",
+      "full": "Select and open your client-specific Salesforce site"
+    },
+    "developer": {
+      "name": "Your Company",
+      "websiteUrl": "https://yourapp.com",
+      "privacyUrl": "https://yourapp.com/privacy",
+      "termsOfUseUrl": "https://yourapp.com/terms"
+    },
+    "icons": {
+      "color": "color.png",
+      "outline": "outline.png"
+    },
+    "staticTabs": [
+      {
+        "entityId": "main",
+        "name": "Portal",
+        "contentUrl": "https://YOUR-HOSTED-APP-URL/index.html",
+        "scopes": ["personal"]
+      }
+    ],
+    "permissions": ["identity"],
+    "validDomains": [
+      "YOUR-HOSTED-APP-URL-DOMAIN",
+      "raw.githubusercontent.com"
+    ]
+  }

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Client Portal</title>
+  <script src="https://res.cdn.office.net/teams-js/2.0.0/js/MicrosoftTeams.min.js"></script>
+</head>
+<body>
+  <h2 id="title">Loading...</h2>
+  <div id="selector" style="display:none;">
+    <p>Select your client:</p>
+    <select id="clientSelect"></select>
+    <br><br>
+    <button onclick="saveSelection()">Continue</button>
+  </div>
+
+  <script>
+    const CONFIG_URL = "https://raw.githubusercontent.com/ORG/REPO/main/config.json";
+
+    async function init() {
+      await microsoftTeams.app.initialize();
+
+      const savedUrl = localStorage.getItem("selectedUrl");
+
+      if (savedUrl) {
+        redirect(savedUrl);
+        return;
+      }
+
+      loadClients();
+    }
+
+    async function loadClients() {
+      try {
+        const res = await fetch(CONFIG_URL);
+        const data = await res.json();
+
+        const select = document.getElementById("clientSelect");
+
+        data.clients.forEach(client => {
+          const option = document.createElement("option");
+          option.value = client.url;
+          option.text = client.name;
+          select.appendChild(option);
+        });
+
+        document.getElementById("title").innerText = "Select Client";
+        document.getElementById("selector").style.display = "block";
+
+      } catch (err) {
+        document.getElementById("title").innerText = "Failed to load config";
+      }
+    }
+
+    function saveSelection() {
+      const url = document.getElementById("clientSelect").value;
+
+      if (!url.startsWith("https://")) {
+        alert("Invalid URL");
+        return;
+      }
+
+      localStorage.setItem("selectedUrl", url);
+      redirect(url);
+    }
+
+    function redirect(url) {
+      window.location.href = url;
+    }
+
+    init();
+  </script>
+</body>
+</html>
