@@ -1,38 +1,39 @@
 {
-    "$schema": "https://developer.microsoft.com/json-schemas/teams/v1.16/MicrosoftTeams.schema.json",
-    "manifestVersion": "1.16",
-    "version": "1.0.0",
-    "id": "YOUR-APP-ID",
-    "packageName": "com.yourcompany.clientportal",
-    "name": {
-      "short": "Client Portal",
-      "full": "Client Portal App"
-    },
-    "description": {
-      "short": "Open client-specific site",
-      "full": "Select and open your client-specific Salesforce site"
-    },
-    "developer": {
-      "name": "Your Company",
-      "websiteUrl": "https://yourapp.com",
-      "privacyUrl": "https://yourapp.com/privacy",
-      "termsOfUseUrl": "https://yourapp.com/terms"
-    },
-    "icons": {
-      "color": "color.png",
-      "outline": "outline.png"
-    },
-    "staticTabs": [
-      {
-        "entityId": "main",
-        "name": "Portal",
-        "contentUrl": "https://YOUR-HOSTED-APP-URL/index.html",
-        "scopes": ["personal"]
-      }
-    ],
-    "permissions": ["identity"],
-    "validDomains": [
-      "YOUR-HOSTED-APP-URL-DOMAIN",
-      "raw.githubusercontent.com"
-    ]
-  }
+  "$schema": "https://developer.microsoft.com/json-schemas/teams/v1.16/MicrosoftTeams.schema.json",
+  "manifestVersion": "1.16",
+  "version": "1.0.0",
+  "id": "65662026-c0cf-4717-87bb-2b070ad3e114",
+  "packageName": "com.showcycle.teamsmobileapp",
+  "name": {
+    "short": "ShowCycle",
+    "full": "ShowCycle Teams App"
+  },
+  "description": {
+    "short": "Open specific site",
+    "full": "Select and open your specific ShowCycle site"
+  },
+  "developer": {
+    "name": "Fantail Tech",
+    "websiteUrl": "https://showcycle.com",
+    "privacyUrl": "https://showcycle.com/privacy-policy",
+    "termsOfUseUrl": "https://showcycle.com/privacy-policy"
+  },
+  "icons": {
+    "color": "color.png",
+    "outline": "outline.png"
+  },
+  "staticTabs": [
+    {
+      "entityId": "main",
+      "name": "ShowCycle Site",
+      "contentUrl": "https://showcycle-teams-mobile-app-frontend.s3.us-east-1.amazonaws.com/index.html",
+      "websiteUrl": "https://showcycle-teams-mobile-app-frontend.s3.us-east-1.amazonaws.com/index.html",
+      "scopes": ["personal"]
+    }
+  ],
+  "permissions": ["identity"],
+  "validDomains": [
+    "showcycle-teams-mobile-app-frontend.s3.us-east-1.amazonaws.com",
+    "raw.githubusercontent.com"
+  ]
+}

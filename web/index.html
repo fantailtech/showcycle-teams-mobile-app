@@ -1,73 +1,84 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-  <title>Client Portal</title>
-  <script src="https://res.cdn.office.net/teams-js/2.0.0/js/MicrosoftTeams.min.js"></script>
+    <title>Site Portal</title>
+    <script src="https://res.cdn.office.net/teams-js/2.0.0/js/MicrosoftTeams.min.js"></script>
 </head>
+
 <body>
-  <h2 id="title">Loading...</h2>
-  <div id="selector" style="display:none;">
-    <p>Select your client:</p>
-    <select id="clientSelect"></select>
-    <br><br>
-    <button onclick="saveSelection()">Continue</button>
-  </div>
+    <h2 id="title">Loading...</h2>
+    <div id="selector" style="display:none;">
+        <p>Select your site:</p>
+        <select id="siteSelect"></select>
+        <br><br>
+        <button onclick="saveSelection()">Continue</button>
+    </div>
 
-  <script>
-    const CONFIG_URL = "https://raw.githubusercontent.com/ORG/REPO/main/config.json";
+    <script>
+        const CONFIG_URL = "https://raw.githubusercontent.com/fantailtech/showcycle-teams-mobile-app/refs/heads/master/config.json";
 
-    async function init() {
-      await microsoftTeams.app.initialize();
+        async function init() {
+            const isInTeams = window.self !== window.top;
 
-      const savedUrl = localStorage.getItem("selectedUrl");
+            if (isInTeams) {
+                try {
+                    await microsoftTeams.app.initialize();
+                } catch (e) {
+                    console.warn("Teams init failed:", e);
+                }
+            }
 
-      if (savedUrl) {
-        redirect(savedUrl);
-        return;
-      }
+            const savedUrl = localStorage.getItem("selectedUrl");
 
-      loadClients();
-    }
+            if (savedUrl) {
+                redirect(savedUrl);
+                return;
+            }
 
-    async function loadClients() {
-      try {
-        const res = await fetch(CONFIG_URL);
-        const data = await res.json();
+            loadSites();
+        }
 
-        const select = document.getElementById("clientSelect");
+        async function loadSites() {
+            try {
+                const res = await fetch(CONFIG_URL);
+                const data = await res.json();
 
-        data.clients.forEach(client => {
-          const option = document.createElement("option");
-          option.value = client.url;
-          option.text = client.name;
-          select.appendChild(option);
-        });
+                const select = document.getElementById("siteSelect");
 
-        document.getElementById("title").innerText = "Select Client";
-        document.getElementById("selector").style.display = "block";
+                data.sites.forEach(site => {
+                    const option = document.createElement("option");
+                    option.value = site.url;
+                    option.text = site.name;
+                    select.appendChild(option);
+                });
 
-      } catch (err) {
-        document.getElementById("title").innerText = "Failed to load config";
-      }
-    }
+                document.getElementById("title").innerText = "Select Site";
+                document.getElementById("selector").style.display = "block";
 
-    function saveSelection() {
-      const url = document.getElementById("clientSelect").value;
+            } catch (err) {
+                document.getElementById("title").innerText = "Failed to load config";
+            }
+        }
 
-      if (!url.startsWith("https://")) {
-        alert("Invalid URL");
-        return;
-      }
+        function saveSelection() {
+            const url = document.getElementById("siteSelect").value;
 
-      localStorage.setItem("selectedUrl", url);
-      redirect(url);
-    }
+            if (!url.startsWith("https://")) {
+                alert("Invalid URL");
+                return;
+            }
 
-    function redirect(url) {
-      window.location.href = url;
-    }
+            localStorage.setItem("selectedUrl", url);
+            redirect(url);
+        }
 
-    init();
-  </script>
+        function redirect(url) {
+            window.location.href = url;
+        }
+
+        init();
+    </script>
 </body>
+
 </html>
