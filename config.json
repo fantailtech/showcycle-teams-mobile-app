@@ -1,12 +1,8 @@
 {
-    "clients": [
+    "sites": [
       {
-        "name": "Client A",
-        "url": "https://clientA.my.site.com"
-      },
-      {
-        "name": "Client B",
-        "url": "https://clientB.my.site.com"
+        "name": "Test Site",
+        "url": "https://force-java-4529-dev-ed.scratch.my.site.com/"
       }
     ]
   }
