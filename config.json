@@ -3,6 +3,9 @@
       {
         "name": "Test Site",
         "url": "https://force-java-4529-dev-ed.scratch.my.site.com/"
-      }
+      },
+      {
+          "name": "Test Query Params",
+          "url": "https://httpbin.org/get"
     ]
   }
