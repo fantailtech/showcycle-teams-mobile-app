@@ -1,8 +1,12 @@
 {
     "sites": [
       {
-        "name": "Test Site",
+        "name": "Test Site 1",
         "url": "https://force-java-4529-dev-ed.scratch.my.site.com/"
+      },
+      {
+          "name": "Test Site 2",
+          "url": "https://httpbin.org/get"
       }
     ]
   }
