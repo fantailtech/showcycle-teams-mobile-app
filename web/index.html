@@ -4,7 +4,6 @@
 <head>
     <title>Site Portal</title>
 
-    <!-- Teams SDK -->
     <script src="https://res.cdn.office.net/teams-js/2.0.0/js/MicrosoftTeams.min.js"></script>
 
     <style>
@@ -12,11 +11,10 @@
             font-family: "Segoe UI", Arial, sans-serif;
             background-color: #f3f2f1;
             margin: 0;
-            padding: 0;
         }
 
         .container {
-            max-width: 400px;
+            max-width: 420px;
             margin: 80px auto;
             background: white;
             padding: 24px;
@@ -31,49 +29,74 @@
         }
 
         p {
-            color: #333;
             font-size: 14px;
         }
 
         select {
             width: 100%;
             padding: 10px;
-            border-radius: 4px;
-            border: 1px solid #ccc;
-            margin-top: 10px;
-            margin-bottom: 20px;
+            margin: 12px 0;
         }
 
         button {
             background-color: #6264A7;
             color: white;
             border: none;
-            padding: 10px 16px;
+            padding: 10px;
+            width: 100%;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 14px;
-            width: 100%;
+            margin-top: 10px;
         }
 
-        button:hover {
-            background-color: #464775;
+        button.secondary {
+            background-color: #e1dfdd;
+            color: #333;
         }
 
-        #loading {
-            color: #6264A7;
+        .loader {
+            margin: 20px 0;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: #ddd;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress {
+            height: 100%;
+            width: 0%;
+            background: #6264A7;
+            transition: width 2s linear;
         }
     </style>
 </head>
 
 <body>
     <div class="container">
-        <h2 id="title">Loading...</h2>
 
+        <!-- Loading Screen -->
+        <div id="loadingScreen" style="display:none;">
+            <h2 id="loadingTitle">Loading...</h2>
+            <div class="loader">
+                <div class="progress-bar">
+                    <div class="progress" id="progress"></div>
+                </div>
+            </div>
+            <button class="secondary" onclick="cancelLoading()">Stop</button>
+        </div>
+
+        <!-- Selector -->
         <div id="selector" style="display:none;">
+            <h2>Select Site</h2>
             <p>Select your site:</p>
             <select id="siteSelect"></select>
             <button onclick="saveSelection()">Continue</button>
         </div>
+
     </div>
 
     <script>
@@ -81,6 +104,7 @@
 
         let userEmail = "";
         let userName = "";
+        let selectedSiteName = "";
 
         async function init() {
             const isInTeams = window.self !== window.top;
@@ -88,7 +112,6 @@
             if (isInTeams) {
                 try {
                     await microsoftTeams.app.initialize();
-
                     const context = await microsoftTeams.app.getContext();
 
                     userEmail = context.user?.userPrincipalName || "";
@@ -100,9 +123,11 @@
             }
 
             const savedUrl = localStorage.getItem("selectedUrl");
+            const savedName = localStorage.getItem("selectedName");
 
-            if (savedUrl) {
-                redirect(savedUrl);
+            if (savedUrl && savedName) {
+                selectedSiteName = savedName;
+                showLoadingAndRedirect(savedUrl); // ✅ ONLY here we show loader
                 return;
             }
 
@@ -123,16 +148,17 @@
                     select.appendChild(option);
                 });
 
-                document.getElementById("title").innerText = "Select Site";
                 document.getElementById("selector").style.display = "block";
 
             } catch (err) {
-                document.getElementById("title").innerText = "Failed to load config";
+                document.getElementById("selector").innerText = "Failed to load config";
             }
         }
 
         function saveSelection() {
-            const url = document.getElementById("siteSelect").value;
+            const select = document.getElementById("siteSelect");
+            const url = select.value;
+            const name = select.options[select.selectedIndex].text;
 
             if (!url.startsWith("https://")) {
                 alert("Invalid URL");
@@ -140,7 +166,38 @@
             }
 
             localStorage.setItem("selectedUrl", url);
+            localStorage.setItem("selectedName", name);
+
+            selectedSiteName = name;
+
+            // ✅ Immediate redirect (NO loader)
             redirect(url);
+        }
+
+        function showLoadingAndRedirect(url) {
+            document.getElementById("selector").style.display = "none";
+            document.getElementById("loadingScreen").style.display = "block";
+
+            document.getElementById("loadingTitle").innerText = `Loading ${selectedSiteName}`;
+
+            const progress = document.getElementById("progress");
+
+            // Reset + animate
+            progress.style.width = "0%";
+            setTimeout(() => {
+                progress.style.width = "100%";
+            }, 50);
+
+            setTimeout(() => {
+                redirect(url);
+            }, 2000);
+        }
+
+        function cancelLoading() {
+            localStorage.removeItem("selectedUrl");
+            localStorage.removeItem("selectedName");
+
+            location.reload();
         }
 
         function redirect(url) {
@@ -154,6 +211,8 @@
 
                 finalUrl += (url.includes("?") ? "&" : "?") + params.toString();
             }
+
+            console.log("Redirecting to:", finalUrl); // 🔍 Debug
 
             window.location.href = finalUrl;
         }
