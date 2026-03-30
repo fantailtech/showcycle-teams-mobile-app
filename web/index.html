@@ -205,15 +205,12 @@
 
             if (userEmail || userName) {
                 const params = new URLSearchParams();
-
                 if (userEmail) params.append("email", userEmail);
                 if (userName) params.append("name", userName);
-
-                finalUrl += (url.includes("?") ? "&" : "?") + params.toString();
+                finalUrl += "#" + params.toString();
             }
 
-            console.log("Redirecting to:", finalUrl); // 🔍 Debug
-
+            console.log("Redirecting to:", finalUrl);
             window.location.href = finalUrl;
         }
 
