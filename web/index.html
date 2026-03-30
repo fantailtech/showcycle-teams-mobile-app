@@ -1,221 +1,261 @@
 <!DOCTYPE html>
 <html>
 
-<head>
-    <title>Site Portal</title>
+	<head>
+		<title>Site Portal</title>
 
-    <script src="https://res.cdn.office.net/teams-js/2.0.0/js/MicrosoftTeams.min.js"></script>
+		<script src="https://res.cdn.office.net/teams-js/2.50.0/js/MicrosoftTeams.min.js"></script>
 
-    <style>
-        body {
-            font-family: "Segoe UI", Arial, sans-serif;
-            background-color: #f3f2f1;
-            margin: 0;
-        }
+		<style>
+			body {
+				font-family: "Segoe UI", Arial, sans-serif;
+				background-color: #f3f2f1;
+				margin: 0;
+			}
 
-        .container {
-            max-width: 420px;
-            margin: 80px auto;
-            background: white;
-            padding: 24px;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            text-align: center;
-        }
+			.container {
+				max-width: 420px;
+				margin: 80px auto;
+				background: white;
+				padding: 24px;
+				border-radius: 8px;
+				box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+				text-align: center;
+			}
 
-        h2 {
-            color: #464775;
-            margin-bottom: 16px;
-        }
+			h2 {
+				color: #464775;
+				margin-bottom: 16px;
+			}
 
-        p {
-            font-size: 14px;
-        }
+			p {
+				font-size: 14px;
+			}
 
-        select {
-            width: 100%;
-            padding: 10px;
-            margin: 12px 0;
-        }
+			select {
+				width: 100%;
+				padding: 10px;
+				margin: 12px 0;
+			}
 
-        button {
-            background-color: #6264A7;
-            color: white;
-            border: none;
-            padding: 10px;
-            width: 100%;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-top: 10px;
-        }
+			button {
+				background-color: #6264A7;
+				color: white;
+				border: none;
+				padding: 10px;
+				width: 100%;
+				border-radius: 4px;
+				cursor: pointer;
+				margin-top: 10px;
+			}
 
-        button.secondary {
-            background-color: #e1dfdd;
-            color: #333;
-        }
+			button.secondary {
+				background-color: #e1dfdd;
+				color: #333;
+			}
 
-        .loader {
-            margin: 20px 0;
-        }
+			.loader {
+				margin: 20px 0;
+			}
 
-        .progress-bar {
-            height: 6px;
-            background: #ddd;
-            border-radius: 4px;
-            overflow: hidden;
-            margin-top: 10px;
-        }
+			.progress-bar {
+				height: 6px;
+				background: #ddd;
+				border-radius: 4px;
+				overflow: hidden;
+				margin-top: 10px;
+			}
 
-        .progress {
-            height: 100%;
-            width: 0%;
-            background: #6264A7;
-            transition: width 2s linear;
-        }
-    </style>
-</head>
+			.progress {
+				height: 100%;
+				width: 0%;
+				background: #6264A7;
+				transition: width 2s linear;
+			}
+		</style>
+	</head>
 
-<body>
-    <div class="container">
+	<body>
+		<div class="container">
 
-        <!-- Loading Screen -->
-        <div id="loadingScreen" style="display:none;">
-            <h2 id="loadingTitle">Loading...</h2>
-            <div class="loader">
-                <div class="progress-bar">
-                    <div class="progress" id="progress"></div>
-                </div>
-            </div>
-            <button class="secondary" onclick="cancelLoading()">Stop</button>
-        </div>
+			<!-- Loading Screen -->
+			<div id="loadingScreen" style="display:none;">
+				<h2 id="loadingTitle">Loading...</h2>
+				<div class="loader">
+					<div class="progress-bar">
+						<div class="progress" id="progress"></div>
+					</div>
+				</div>
+				<button class="secondary" onclick="cancelLoading()">Stop</button>
+			</div>
 
-        <!-- Selector -->
-        <div id="selector" style="display:none;">
-            <h2>Select Site</h2>
-            <p>Select your site:</p>
-            <select id="siteSelect"></select>
-            <button onclick="saveSelection()">Continue</button>
-        </div>
+			<!-- Selector -->
+			<div id="selector" style="display:none;">
+				<h2>Select Site</h2>
+				<p>Select your site:</p>
+				<select id="siteSelect"></select>
+				<button onclick="saveSelection()">Continue</button>
+			</div>
 
-    </div>
+		</div>
 
-    <script>
-        const CONFIG_URL = "https://raw.githubusercontent.com/fantailtech/showcycle-teams-mobile-app/refs/heads/master/config.json";
+		<script>
+			const CONFIG_URL = "https://raw.githubusercontent.com/fantailtech/showcycle-teams-mobile-app/refs/heads/master/config.json";
 
-        let userEmail = "";
-        let userName = "";
-        let selectedSiteName = "";
+			let userEmail = "";
+			let userName = "";
+			let selectedSiteName = "";
 
-        async function init() {
-            const isInTeams = window.self !== window.top;
+			const TEAMS_CONTEXT_TIMEOUT_MS = 1500;
 
-            if (isInTeams) {
-                try {
-                    await microsoftTeams.app.initialize();
-                    const context = await microsoftTeams.app.getContext();
+			async function init() {
+				await initializeTeamsContextIfAvailable();
 
-                    userEmail = context.user?.userPrincipalName || "";
-                    userName = context.user?.displayName || "";
+				const savedUrl = localStorage.getItem("selectedUrl");
+				const savedName = localStorage.getItem("selectedName");
 
-                } catch (e) {
-                    console.warn("Teams init failed:", e);
-                }
-            }
+				if (savedUrl && savedName) {
+					selectedSiteName = savedName;
+					showLoadingAndRedirect(savedUrl); // ✅ ONLY here we show loader
+					return;
+				}
 
-            const savedUrl = localStorage.getItem("selectedUrl");
-            const savedName = localStorage.getItem("selectedName");
+				loadSites();
+			}
 
-            if (savedUrl && savedName) {
-                selectedSiteName = savedName;
-                showLoadingAndRedirect(savedUrl); // ✅ ONLY here we show loader
-                return;
-            }
+			async function initializeTeamsContextIfAvailable() {
+				if (!shouldAttemptTeamsInit() || !window.microsoftTeams?.app?.initialize) {
+					return;
+				}
 
-            loadSites();
-        }
+				try {
+					await withTimeout(
+						microsoftTeams.app.initialize(),
+						TEAMS_CONTEXT_TIMEOUT_MS,
+						"Teams initialize"
+					);
 
-        async function loadSites() {
-            try {
-                const res = await fetch(CONFIG_URL);
-                const data = await res.json();
+					const context = await withTimeout(
+						microsoftTeams.app.getContext(),
+						TEAMS_CONTEXT_TIMEOUT_MS,
+						"Teams getContext"
+					);
 
-                const select = document.getElementById("siteSelect");
+					userEmail =
+						context.user?.userPrincipalName ||
+						context.user?.loginHint ||
+						"";
+					userName = context.user?.displayName || "";
+				} catch (e) {
+					console.warn("Teams context unavailable:", e);
+				}
+			}
 
-                data.sites.forEach(site => {
-                    const option = document.createElement("option");
-                    option.value = site.url;
-                    option.text = site.name;
-                    select.appendChild(option);
-                });
+			function shouldAttemptTeamsInit() {
+				const params = new URLSearchParams(window.location.search);
+				if (params.get("inTeams") === "1") {
+					return true;
+				}
 
-                document.getElementById("selector").style.display = "block";
+				const referrer = document.referrer || "";
+				const userAgent = navigator.userAgent || "";
+				return /Teams|TeamsMobile/i.test(userAgent) ||
+					/teams\.microsoft\.com|teams\.cloud\.microsoft|microsoft365\.com|office\.com/i.test(referrer);
+			}
 
-            } catch (err) {
-                document.getElementById("selector").innerText = "Failed to load config";
-            }
-        }
+			function withTimeout(promise, timeoutMs, label) {
+				return Promise.race([
+					promise,
+					new Promise((_, reject) => {
+						window.setTimeout(() => {
+							reject(new Error(`${label} timed out`));
+						}, timeoutMs);
+					})
+				]);
+			}
 
-        function saveSelection() {
-            const select = document.getElementById("siteSelect");
-            const url = select.value;
-            const name = select.options[select.selectedIndex].text;
+			async function loadSites() {
+				try {
+					const res = await fetch(CONFIG_URL);
+					const data = await res.json();
 
-            if (!url.startsWith("https://")) {
-                alert("Invalid URL");
-                return;
-            }
+					const select = document.getElementById("siteSelect");
 
-            localStorage.setItem("selectedUrl", url);
-            localStorage.setItem("selectedName", name);
+					data.sites.forEach(site => {
+						const option = document.createElement("option");
+						option.value = site.url;
+						option.text = site.name;
+						select.appendChild(option);
+					});
 
-            selectedSiteName = name;
+					document.getElementById("selector").style.display = "block";
 
-            // ✅ Immediate redirect (NO loader)
-            redirect(url);
-        }
+				} catch (err) {
+					document.getElementById("selector").innerText = "Failed to load config";
+				}
+			}
 
-        function showLoadingAndRedirect(url) {
-            document.getElementById("selector").style.display = "none";
-            document.getElementById("loadingScreen").style.display = "block";
+			function saveSelection() {
+				const select = document.getElementById("siteSelect");
+				const url = select.value;
+				const name = select.options[select.selectedIndex].text;
 
-            document.getElementById("loadingTitle").innerText = `Loading ${selectedSiteName}`;
+				if (!url.startsWith("https://")) {
+					alert("Invalid URL");
+					return;
+				}
 
-            const progress = document.getElementById("progress");
+				localStorage.setItem("selectedUrl", url);
+				localStorage.setItem("selectedName", name);
 
-            // Reset + animate
-            progress.style.width = "0%";
-            setTimeout(() => {
-                progress.style.width = "100%";
-            }, 50);
+				selectedSiteName = name;
 
-            setTimeout(() => {
-                redirect(url);
-            }, 2000);
-        }
+				// ✅ Immediate redirect (NO loader)
+				redirect(url);
+			}
 
-        function cancelLoading() {
-            localStorage.removeItem("selectedUrl");
-            localStorage.removeItem("selectedName");
+			function showLoadingAndRedirect(url) {
+				document.getElementById("selector").style.display = "none";
+				document.getElementById("loadingScreen").style.display = "block";
 
-            location.reload();
-        }
+				document.getElementById("loadingTitle").innerText = `Loading ${selectedSiteName}`;
 
-        function redirect(url) {
-            let finalUrl = url;
+				const progress = document.getElementById("progress");
 
-            if (userEmail || userName) {
-                const params = new URLSearchParams();
-                if (userEmail) params.append("email", userEmail);
-                if (userName) params.append("name", userName);
-                finalUrl += "#" + params.toString();
-            }
+				// Reset + animate
+				progress.style.width = "0%";
+				setTimeout(() => {
+					progress.style.width = "100%";
+				}, 50);
 
-            console.log("Redirecting to:", finalUrl);
-            window.location.href = finalUrl;
-        }
+				setTimeout(() => {
+					redirect(url);
+				}, 2000);
+			}
 
-        init();
-    </script>
-</body>
+			function cancelLoading() {
+				localStorage.removeItem("selectedUrl");
+				localStorage.removeItem("selectedName");
+
+				location.reload();
+			}
+
+			function redirect(url) {
+				let finalUrl = url;
+
+				if (userEmail || userName) {
+					const params = new URLSearchParams();
+					if (userEmail) params.append("email", userEmail);
+					if (userName) params.append("name", userName);
+					finalUrl += finalUrl.includes("#") ? "&" + params.toString() : "#" + params.toString();
+				}
+
+				console.log("Redirecting to:", finalUrl);
+				window.location.href = finalUrl;
+			}
+
+			init();
+		</script>
+	</body>
 
 </html>
