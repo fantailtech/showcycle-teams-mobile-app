@@ -10,6 +10,33 @@
       "publish": true
     },
     {
+      "name": "Fixtures & Fitting Expo 2026",
+      "url": "https://serpentine-fp1515.my.site.com/FNF26/sponsorshipopportunities",
+      "logoUrl": "",
+      "startDate": "2026-07-10",
+      "endDate": "2026-07-16",
+      "timeZone": "America/New_York",
+      "publish": true
+    },
+    {
+      "name": "Symposium in the Sun 2026",
+      "url": "https://iafchelix--partialsb.sandbox.my.site.com/SUN26/floor-plan",
+      "logoUrl": "",
+      "startDate": "2026-11-12",
+      "endDate": "2026-11-15",
+      "timeZone": "America/New_York",
+      "publish": true
+    },
+    {
+      "name": "Storage Tech Expo 2025",
+      "url": "https://showcycletestdrive-dev-ed.develop.my.site.com/stx25/",
+      "logoUrl": "",
+      "startDate": "2025-12-11",
+      "endDate": "2025-12-13",
+      "timeZone": "America/New_York",
+      "publish": true
+    },
+    {
       "name": "Test Site 2",
       "url": "https://httpbin.org/get",
       "logoUrl": "",
