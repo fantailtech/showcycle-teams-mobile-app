@@ -1,7 +1,7 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/teams/v1.25/MicrosoftTeams.schema.json",
   "manifestVersion": "1.25",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "id": "65662026-c0cf-4717-87bb-2b070ad3e114",
   "developer": {
     "name": "Fantail Tech",
@@ -14,8 +14,8 @@
     "full": "ShowCycle Teams App"
   },
   "description": {
-    "short": "Open specific site",
-    "full": "Select and open your specific ShowCycle site"
+    "short": "Open your shows",
+    "full": "Browse your shows and jump straight into the one you need."
   },
   "icons": {
     "color": "color.png",
@@ -26,10 +26,17 @@
 
   "staticTabs": [
     {
-      "entityId": "main",
-      "name": "ShowCycle Site",
-      "contentUrl": "https://showcycle-teams-mobile-app-frontend.s3.us-east-1.amazonaws.com/index-v2.html?inTeams=1",
-      "websiteUrl": "https://showcycle-teams-mobile-app-frontend.s3.us-east-1.amazonaws.com/index-v2.html?inTeams=1",
+      "entityId": "home",
+      "name": "Home",
+      "contentUrl": "https://showcycle-teams-mobile-app-frontend.s3.us-east-1.amazonaws.com/index-v2.html?inTeams=1&view=home",
+      "websiteUrl": "https://showcycle-teams-mobile-app-frontend.s3.us-east-1.amazonaws.com/index-v2.html?inTeams=1&view=home",
+      "scopes": ["personal"]
+    },
+    {
+      "entityId": "shows",
+      "name": "Shows",
+      "contentUrl": "https://showcycle-teams-mobile-app-frontend.s3.us-east-1.amazonaws.com/index-v2.html?inTeams=1&view=shows",
+      "websiteUrl": "https://showcycle-teams-mobile-app-frontend.s3.us-east-1.amazonaws.com/index-v2.html?inTeams=1&view=shows",
       "scopes": ["personal"]
     }
   ],

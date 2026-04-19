@@ -129,12 +129,6 @@
 			color: var(--text);
 		}
 
-		.brand-subtitle {
-			font-size: 12px;
-			color: var(--text-dim);
-			margin-top: 1px;
-		}
-
 		/* Section */
 		.section {
 			margin-top: 24px;
@@ -321,6 +315,32 @@
 			letter-spacing: 0.4px;
 			box-shadow: 0 2px 6px rgba(34, 197, 94, 0.45);
 			text-transform: uppercase;
+		}
+
+		.tile-active .tile-logo {
+			box-shadow: 0 0 0 2px var(--accent), 0 8px 24px var(--accent-glow);
+			border-color: transparent;
+		}
+
+		.tile-active-badge {
+			position: absolute;
+			bottom: 6px;
+			right: 6px;
+			width: 20px;
+			height: 20px;
+			border-radius: 999px;
+			background: var(--accent);
+			color: #fff;
+			display: grid;
+			place-items: center;
+			box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+			border: 2px solid var(--bg);
+		}
+
+		.tile-active-badge svg {
+			width: 10px;
+			height: 10px;
+			stroke-width: 3;
 		}
 
 		.tile-live::before {
@@ -570,19 +590,28 @@
 		<header class="header">
 			<div class="brand">
 				<div class="brand-mark" aria-hidden="true">SC</div>
-				<div>
-					<div class="brand-title">ShowCycle</div>
-					<div class="brand-subtitle" id="brandSubtitle">Choose a show to get started</div>
-				</div>
+				<div class="brand-title">ShowCycle</div>
 			</div>
 		</header>
 
+		<!-- Home empty (Home tab, no saved show) -->
+		<div class="state-card hidden" id="homeEmpty">
+			<div class="state-icon" aria-hidden="true">
+				<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+					stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+					<path d="M3 12l9-9 9 9"></path>
+					<path d="M5 10v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V10"></path>
+				</svg>
+			</div>
+			<h3 class="state-title">Nothing here yet</h3>
+			<p class="state-desc">Pick a show to open it here.</p>
+			<div class="state-action">
+				<button class="btn" type="button" id="goToShowsBtn">Browse shows</button>
+			</div>
+		</div>
+
 		<!-- Skeleton while loading -->
 		<section class="section" id="skeletonSection" aria-hidden="true">
-			<div class="section-head">
-				<div class="section-title">Loading</div>
-				<div class="section-rule"></div>
-			</div>
 			<div class="grid skeleton-grid" id="skeletonGrid"></div>
 		</section>
 
@@ -599,7 +628,7 @@
 		<!-- Past events -->
 		<section class="section hidden" id="pastSection" aria-labelledby="pastTitle">
 			<div class="section-head">
-				<div class="section-title" id="pastTitle">Past Events</div>
+				<div class="section-title" id="pastTitle">Past</div>
 				<div class="section-rule"></div>
 				<div class="section-count" id="pastCount">0</div>
 			</div>
@@ -629,9 +658,9 @@
 				</svg>
 			</div>
 			<h3 class="state-title">Couldn't load shows</h3>
-			<p class="state-desc" id="errorDesc">Check your connection and try again.</p>
+			<p class="state-desc" id="errorDesc">Check your connection.</p>
 			<div class="state-action">
-				<button class="btn" type="button" onclick="loadSites()">Retry</button>
+				<button class="btn" type="button" onclick="loadSites()">Try again</button>
 			</div>
 		</div>
 	</main>
@@ -642,7 +671,7 @@
 		<div class="loader-card">
 			<div class="loader-logo" id="loaderLogo" aria-hidden="true"></div>
 			<h2 class="loader-title" id="loaderTitle">Opening…</h2>
-			<p class="loader-subtitle" id="loaderSubtitle">Preparing your show</p>
+			<p class="loader-subtitle" id="loaderSubtitle">Just a moment</p>
 			<div class="loader-bar">
 				<div class="loader-bar-fill" id="loaderFill"></div>
 			</div>
@@ -668,28 +697,91 @@
 			["#5C6BC0", "#7986CB"]
 		];
 
+		const VIEW_HOME = "home";
+		const VIEW_SHOWS = "shows";
+
 		let userEmail = "";
 		let userName = "";
+		let teamsAppId = "";
+		let view = VIEW_HOME;
 		let selectedSite = null;
 		let redirectTimer = null;
 
 		document.addEventListener("DOMContentLoaded", init);
 
 		async function init() {
-			renderSkeleton();
-			await initializeTeamsContextIfAvailable();
+			view = readView();
+			document.body.setAttribute("data-view", view);
 
-			const savedUrl = localStorage.getItem("selectedUrl");
-			const savedName = localStorage.getItem("selectedName");
-			const savedLogo = localStorage.getItem("selectedLogo") || "";
+			wireStaticButtons();
 
-			if (savedUrl && savedName) {
-				selectedSite = { name: savedName, url: savedUrl, logoUrl: savedLogo };
-				showLoadingAndRedirect(selectedSite);
+			if (view === VIEW_SHOWS) {
+				await initializeTeamsContextIfAvailable();
+				loadSites();
 				return;
 			}
 
-			loadSites();
+			hideSkeleton();
+			await initializeTeamsContextIfAvailable();
+
+			const saved = getSavedSite();
+			if (saved) {
+				selectedSite = saved;
+				showLoadingAndRedirect(saved);
+				return;
+			}
+
+			showHomeEmpty();
+		}
+
+		function readView() {
+			const params = new URLSearchParams(window.location.search);
+			const raw = (params.get("view") || "").toLowerCase();
+			if (raw === VIEW_SHOWS) return VIEW_SHOWS;
+			return VIEW_HOME;
+		}
+
+		function wireStaticButtons() {
+			const go = document.getElementById("goToShowsBtn");
+			if (go) go.addEventListener("click", () => navigateToTab(VIEW_SHOWS));
+		}
+
+		function getSavedSite() {
+			const url = localStorage.getItem("selectedUrl");
+			const name = localStorage.getItem("selectedName");
+			if (!url || !name) return null;
+			return {
+				url,
+				name,
+				logoUrl: localStorage.getItem("selectedLogo") || ""
+			};
+		}
+
+		function showHomeEmpty() {
+			document.getElementById("homeEmpty").classList.remove("hidden");
+		}
+
+		function hideHomeEmpty() {
+			document.getElementById("homeEmpty").classList.add("hidden");
+		}
+
+		async function navigateToTab(pageId) {
+			try {
+				if (window.microsoftTeams?.pages?.currentApp?.navigateTo) {
+					await microsoftTeams.pages.currentApp.navigateTo({ pageId });
+					return true;
+				}
+				if (teamsAppId && window.microsoftTeams?.pages?.navigateToApp) {
+					await microsoftTeams.pages.navigateToApp({ appId: teamsAppId, pageId });
+					return true;
+				}
+			} catch (e) {
+				console.warn("navigateToTab failed:", e);
+			}
+			const url = new URL(window.location.href);
+			url.searchParams.set("view", pageId);
+			window.location.href = url.toString();
+			return false;
 		}
 
 		async function initializeTeamsContextIfAvailable() {
@@ -711,6 +803,7 @@
 					context.user?.loginHint ||
 					"";
 				userName = context.user?.displayName || "";
+				teamsAppId = context.app?.appId || context.app?.id || "";
 			} catch (e) {
 				console.warn("Teams context unavailable:", e);
 			}
@@ -786,10 +879,8 @@
 			} catch (err) {
 				console.error("Failed to load sites:", err);
 				hideSkeleton();
-				const desc = document.getElementById("errorDesc");
-				desc.textContent = err?.message
-					? `${err.message}. Check your connection and try again.`
-					: "Check your connection and try again.";
+				document.getElementById("errorDesc").textContent =
+					"Check your connection.";
 				document.getElementById("errorState").classList.remove("hidden");
 			}
 		}
@@ -868,12 +959,18 @@
 		}
 
 		function createTile(site, index, kind, today) {
+			const saved = getSavedSite();
+			const isActive = !!(saved && saved.url === site.url);
+
 			const btn = document.createElement("button");
 			btn.type = "button";
-			btn.className = "tile" + (kind === "past" ? " tile-past" : "");
+			let cls = "tile";
+			if (kind === "past") cls += " tile-past";
+			if (isActive) cls += " tile-active";
+			btn.className = cls;
 			btn.setAttribute("role", "listitem");
 			btn.style.setProperty("--i", index);
-			btn.setAttribute("aria-label", buildAriaLabel(site));
+			btn.setAttribute("aria-label", buildAriaLabel(site, isActive));
 			btn.addEventListener("click", () => onTileClick(site));
 
 			const logoWrap = document.createElement("div");
@@ -885,6 +982,14 @@
 				live.className = "tile-live";
 				live.textContent = "LIVE";
 				logoWrap.appendChild(live);
+			}
+
+			if (isActive) {
+				const badge = document.createElement("span");
+				badge.className = "tile-active-badge";
+				badge.setAttribute("aria-hidden", "true");
+				badge.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+				logoWrap.appendChild(badge);
 			}
 
 			const name = document.createElement("div");
@@ -902,10 +1007,11 @@
 			return btn;
 		}
 
-		function buildAriaLabel(site) {
+		function buildAriaLabel(site, isActive) {
 			const parts = [site.name || "Show"];
 			const range = formatDateRange(site._start, site._end);
 			if (range) parts.push(range);
+			if (isActive) parts.push("currently open");
 			return parts.join(", ");
 		}
 
@@ -1006,6 +1112,12 @@
 			localStorage.setItem("selectedName", site.name || "");
 			localStorage.setItem("selectedLogo", site.logoUrl || "");
 
+			if (view === VIEW_SHOWS) {
+				// Shows tab: hand off to Home tab, which owns the redirect.
+				navigateToTab(VIEW_HOME);
+				return;
+			}
+
 			redirect(site.url);
 		}
 
@@ -1037,7 +1149,7 @@
 			}));
 
 			document.getElementById("loaderTitle").textContent = site.name || "Opening…";
-			document.getElementById("loaderSubtitle").textContent = "Loading your show…";
+			document.getElementById("loaderSubtitle").textContent = "Opening…";
 		}
 
 		function cancelLoading() {
@@ -1053,7 +1165,7 @@
 			const overlay = document.getElementById("loaderOverlay");
 			overlay.classList.remove("show");
 
-			loadSites();
+			navigateToTab(VIEW_SHOWS);
 		}
 
 		function redirect(url) {
