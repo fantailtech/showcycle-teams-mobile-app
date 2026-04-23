@@ -2,10 +2,10 @@
   "sites": [
     {
       "name": "Storage Tech Expo 2026",
-      "url": "https://app-site-5594-dev-ed.scratch.my.site.com/ste26/",
+      "url": "https://app-speed-5763-dev-ed.scratch.my.site.com/STE26",
       "logoUrl": "",
-      "startDate": "2026-11-02",
-      "endDate": "2026-11-05",
+      "startDate": "2026-05-01",
+      "endDate": "2026-05-05",
       "timeZone": "America/New_York",
       "publish": true
     },
