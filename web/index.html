@@ -834,6 +834,8 @@
 		let userEmail = "";
 		let userName = "";
 		let teamsAppId = "";
+		let teamsTheme = "";
+		let inTeamsContext = false;
 		let currentSite = null;
 		let iframeLoadTimer = null;
 
@@ -902,9 +904,21 @@
 					"";
 				userName = context.user?.displayName || "";
 				teamsAppId = context.app?.appId || context.app?.id || "";
+				teamsTheme = mapTeamsTheme(context.app?.theme);
+				inTeamsContext = true;
 			} catch (e) {
 				console.warn("Teams context unavailable:", e);
 			}
+		}
+
+		// Maps Teams host theme ("default" | "dark" | "contrast" | "glass")
+		// to the site's theme developer name. Site has no dedicated high-contrast
+		// theme, so contrast falls back to Dark; glass falls back to Default.
+		function mapTeamsTheme(raw) {
+			if (!raw || typeof raw !== "string") return "";
+			const t = raw.toLowerCase();
+			if (t === "dark" || t === "contrast") return "Dark";
+			return "Default";
 		}
 
 		function shouldAttemptTeamsInit() {
@@ -1335,11 +1349,14 @@
 		}
 
 		function appendUserInfo(url) {
-			if (!userEmail && !userName) return url;
 			const params = new URLSearchParams();
 			if (userEmail) params.append("email", userEmail);
 			if (userName) params.append("name", userName);
-			return url + (url.includes("#") ? "&" : "#") + params.toString();
+			if (teamsTheme) params.append("theme", teamsTheme);
+			if (inTeamsContext) params.append("inTeams", "1");
+			const qs = params.toString();
+			if (!qs) return url;
+			return url + (url.includes("#") ? "&" : "#") + qs;
 		}
 
 		function attachStorageSync() {
